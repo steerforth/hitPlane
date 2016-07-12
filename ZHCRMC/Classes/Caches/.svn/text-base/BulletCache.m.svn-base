@@ -1,0 +1,62 @@
+//
+//  BulletCache.m
+//  ZHCRMC
+//
+//  Created by jiangyu on 13-1-14.
+//  Copyright 2013年 __MyCompanyName__. All rights reserved.
+//
+
+#import "BulletCache.h"
+
+#import "Player.h"
+#import "PlayingScene.h"
+#import "Bullet.h"
+
+@implementation BulletCache
+
+- (id)init
+{
+    self = [super init];
+    if (self) {
+        CCSpriteFrame* bulletFrame = [[CCSpriteFrameCache sharedSpriteFrameCache] spriteFrameByName:@"dl_pe_a_041.png"];
+		// use the bullet's texture (which will be the Texture Atlas used by the game)
+		batchNode = [CCSpriteBatchNode batchNodeWithTexture:bulletFrame.texture];
+        [self addChild:batchNode];
+    }
+    return self;
+}
+
+-(void)shootNuke{
+//    NukeBomb * nuke = [NukeBomb node];
+//    nuke.playerPlayingScene = gamePlayingScene;
+//    [self addChild:nuke];
+}
+-(void)cleanUpAllBullet{
+    [batchNode removeAllChildrenWithCleanup:YES];
+}
+
+-(void) shootAddWeapon{
+    
+}
+
+-(void)shootBulletAt:(CGPoint)startPosition velocity:(CGPoint)vel FrameName:(NSString *)frameName isPlayerBullet:(bool)playerBullet Bullet:(Bullet *)bullet Damage:(CGFloat)damage{
+    [batchNode addChild:bullet];
+    [bullet shootBulletAt:startPosition velocity:vel frameName:frameName isPlayerBullet:playerBullet Damage:damage];
+}
+
+-(void)ShootOneBullet:(CGPoint)stP{
+    Player * target = [[PlayingScene SharedPlayingScene] getPlayer];
+    Bullet * bullet = [Bullet bullet];
+    CGPoint vel = ccpNormalize(ccpSub(target.position, stP));
+    vel = ccpMult(vel, EnemyBulletSpeed);
+    [self shootBulletAt:stP velocity:vel FrameName:@"dl_pe_b_061.png" isPlayerBullet:NO Bullet:bullet Damage:1];
+}
+
+-(void)ShootThreeBullet:(CGPoint)stP{
+    Bullet * bullet = [Bullet bullet];
+    CGPoint vel = ccp(0,-1);
+    vel = ccpMult(vel, EnemyBulletSpeed);
+    [self shootBulletAt:stP velocity:vel FrameName:@"dl_pe_b_061.png" isPlayerBullet:NO Bullet:bullet Damage:1];
+}
+
+@end

@@ -1,0 +1,661 @@
+//
+//  NormalFly.m
+//  ZHCRMC
+//
+//  Created by jiangyu on 13-1-14.
+//  Copyright 2013年 __MyCompanyName__. All rights reserved.
+//
+
+#import "NormalFly.h"
+
+#import "BulletCache.h"
+#import "PlayingScene.h"
+#import "EnemyBulletEmitter.h"
+
+@implementation NormalFly
+
+- (id)init
+{
+    self = [super init];
+    if (self) {
+        self.visible = NO;
+        shootType = 1;
+        
+        isMoveStop = NO;
+        moveStopInterval = 0;
+    }
+    return self;
+}
+
+-(void) setModel:(EnemyType) ET{ // 设置模型
+    NSString * modelName;
+    NSInteger animationCount;
+    NSInteger pt;
+    NSInteger hP;
+    switch (ET) {
+        case 1:
+            modelName = @"dl_enemy_01_";
+            animationCount = 1;
+            pt = 1;
+            hP = 50;
+            shootType = 1;
+            break;
+        case 2:
+            modelName = @"dl_enemy_02_";
+            animationCount = 2;
+            pt = 2;
+            hP = 100;
+            shootType = 2;
+            break;
+        case 3:
+            modelName = @"dl_enemy_03_";
+            animationCount = 2;
+            pt = 3;
+            hP = 150;
+            shootType = 3;
+            break;
+        case 4:
+            modelName = @"dl_enemy_04_";
+            animationCount = 2;
+            pt = 4;
+            hP = 200;
+            shootType = 0;
+            break;
+        case 5:
+            modelName = @"dl_enemy_05_";
+            animationCount = 2;
+            pt = 5;
+            hP = 250;
+            shootType = 0;
+            break;
+        case 6:
+            modelName = @"dl_enemy_06_";
+            animationCount = 1;
+            pt = 6;
+            hP = 300;
+            shootType = 0;
+            break;
+        case 7:
+            modelName = @"dl_enemy_07_";
+            animationCount = 1;
+            pt = 7;
+            hP = 350;
+            shootType = 1;
+            break;
+        case 8:
+            modelName = @"dl_bigenemy_01_";
+            animationCount = 1;
+            pt = 150;
+            hP = 1000;
+            shootType = 0;
+            break;
+        case 9:
+            modelName = @"dl_bigenemy_02_";
+            animationCount = 2;
+            pt = 150;
+            hP = 1500;
+            shootType = 0;
+            break;
+        case 10:
+            modelName = @"dl_bigenemy_03_";
+            animationCount = 2;
+            pt = 150;
+            hP = 2000;
+            shootType = 0;
+            break;
+        default:
+            break;
+    }
+    enemyType = ET;
+    [self initEmitterShootArray];
+    point = pt;
+    health = hP;
+//    if (animationCount==1) {
+//        CCSpriteFrame * frame = [[CCSpriteFrameCache sharedSpriteFrameCache] spriteFrameByName:[NSString stringWithFormat:@"%@1.png",modelName]];
+//        [self setDisplayFrame:frame];
+//    }else{
+    id idleAction = [self LoadAnimationActionEndFrame:animationCount StartFram:1 Delta:0.05 AnimateName:modelName AnimateCacheName:nil];
+    if (isEliteFly) {
+        CCTintTo * tint = [CCTintTo actionWithDuration:0.1 red:252 green:0 blue:242];
+        CCTintTo * tintback = [CCTintTo actionWithDuration:0.1 red:255 green:255 blue:255];
+        id sequence = [CCSequence actionOne:tint two:tintback];
+        id spawn = [CCSpawn actionOne:idleAction two:sequence];
+        [self runAction:[CCRepeatForever actionWithAction:spawn]];
+    }else{
+        [self runAction:[CCRepeatForever actionWithAction:idleAction]];
+    }
+    id deathAction = [self LoadAnimationActionEndFrame:5 StartFram:1 Delta:0.1 AnimateName:@"dl_pe_b_01"  AnimateCacheName:@"smallFlyDeath"];
+    CCCallFunc * deathF = [CCCallFunc actionWithTarget:self selector:@selector(Death)];
+    self.death_Action = [CCSequence actionOne:deathAction two:deathF];
+//    }
+}
+
+-(void)SpawnWithEnemyType:(EnemyType)ET At:(CGPoint)spawnPos WithMoveType:(EnemyMoveType)MT HasArticle:(NSInteger)whichArt AndShootIntervalMax:(ccTime)SIM isElite:(BOOL)isElite{
+    [super SpawnWithEnemyType:ET At:spawnPos WithMoveType:MT HasArticle:whichArt AndShootIntervalMax:SIM isElite:isElite];
+    
+    arcCount = 0;
+    self.position = spawnPos;
+    startPos = spawnPos;
+    
+    moveType = MT;
+    artType = whichArt;
+    
+    shootIntervalMax = SIM;
+    self.visible = YES;
+    shootOnce = NO;
+    canMove = YES;
+    
+
+    shootIntervalMax +=1.0;
+    
+    lastPos = ccp(screenRect.size.width/2, screenRect.size.height/5*3);
+    if(moveType == 12){ velocity = ccp(0, -1); }
+    
+    if (isElite) {
+        health *=2;
+    }
+    
+    [self unscheduleUpdate];
+    [self scheduleUpdate];
+}
+
+
+-(void)move:(const EnemyMoveType)mt{
+    if (isDeath) {
+        return;
+    }
+    switch (mt) {
+        case 1:
+            [self moveTypeOneCalc];
+            break;
+        case 2:
+            [self moveTypeTwoCalc];
+            break;
+        case 3:
+            [self moveTypeThreeCalc];
+            break;
+        case 4:
+            [self moveTypeFourCalc];
+            break;
+        case 5:
+            [self moveTypeFiveCalc];
+            break;
+        case 6:
+            [self moveTypeSixCalc];
+            break;
+        case 7:
+            [self moveTypeSevenCalc];
+            break;
+        case 8:
+            [self moveTypeEightCalc];
+            break;
+        case 9:
+            [self moveTypeNineCalc];
+            break;
+        case 10:
+            [self moveTypeTenCalc];
+            break;
+        case 11:
+            [self moveTypeElevenCalc];
+            break;
+        case 12:
+            [self moveTypeTwelveCalc];
+            break;
+//        case 13:
+//            [self moveTypeThirteenCalc];
+//            break;
+        default:
+            break;
+    }
+}
+
+-(void)update:(ccTime)delta{
+    if (isMoveStop) {
+        moveStopInterval += delta;//计算停顿时间
+    }
+    [self move:moveType];
+    if (canMove) {
+        self.position = ccpAdd(self.position,ccpMult(velocity,1.5));
+    }
+    [self isInScreenRect];
+    shootInterval +=delta;
+    if (shootInterval >= shootIntervalMax && !shootOnce) {
+        if (shootIntervalMax ==1) {
+            shootOnce = YES;
+        }
+        [self shoot:shootType];
+        shootInterval = 1.0;
+    }
+    [self checkCollisionWithPlayer];
+}
+
+#pragma mark - moveType
+-(void) takeRotate{
+    
+    CGFloat rotate = ccpToAngle(velocity);
+    
+    rotate = CC_RADIANS_TO_DEGREES(3.14/2*3-rotate);
+    
+    if (self.rotation!=rotate) {
+        self.rotation = rotate;
+    }
+}
+
+-(void) moveTypeOneCalc{//斜线移动
+    if (startPos.x<160) {
+        velocity = ccpNormalize(ccp(1, -1));
+    }else{
+        velocity = ccpNormalize(ccp(-1, -1));
+    }
+    [self takeRotate];
+}
+
+-(void) moveTypeTwoCalc{// 圆心在左下边
+    CGPoint vel;
+    if (startPos.x<160) {
+        vel = ccpSub(ccp(startPos.x,startPos.y  - 160), self.position);
+        vel = ccpPerp(vel);
+    }else{
+        vel = ccpSub(ccp(startPos.x,startPos.y  - 160), self.position);
+        vel = ccpRPerp(vel);
+    }
+    vel.y -=0.1;
+    velocity = ccpNormalize(vel);
+    
+    [self takeRotate];
+}
+-(void) moveTypeThreeCalc{//圆心在右下边
+    return;
+}
+-(void) moveTypeFourCalc{//圆心在屏幕顶端中点
+    CGPoint vel;
+    CGFloat r = fabsf(startPos.x - 160);
+    if (startPos.x<160) {
+        vel = ccpSub(ccp(startPos.x + r,startPos.y), self.position);
+        vel = ccpRPerp(vel);
+    }else{
+        vel = ccpSub(ccp(startPos.x - r,startPos.y), self.position);
+        vel = ccpPerp(vel);
+    }
+    vel.y -=0.1;
+    velocity = ccpNormalize( vel);
+    
+    [self takeRotate];
+}
+-(void) moveTypeFiveCalc{//圈圈
+    CGPoint vel;
+    CGPoint pos;
+    if (startPos.x<160) {
+        pos = ccp(startPos.x + arcCount * 0.15, startPos.y-arcCount *0.15);
+        vel = ccpSub(ccp(pos.x,pos.y - 60), self.position);
+        vel = ccpRPerp(vel);
+    }else{ 
+        pos = ccp(startPos.x - arcCount * 0.15, startPos.y- arcCount *0.15);
+        vel = ccpSub(ccp(pos.x,pos.y - 60), self.position);
+        vel = ccpPerp(vel);
+    }
+    vel.y -=0.1;
+    arcCount ++;
+    velocity = ccpNormalize( vel);
+    
+    [self takeRotate];
+}
+-(void) moveTypeSixCalc{// 圆心在左边或右边 与起始点同水平线上
+    CGPoint vel;
+    if (startPos.x<160) {
+        vel = ccpSub(ccp(startPos.x - 360,startPos.y), self.position);
+        vel = ccpPerp(vel);
+    }else{
+        vel = ccpSub(ccp(startPos.x + 360,startPos.y), self.position);
+        vel = ccpRPerp(vel);
+    }
+    velocity = ccpNormalize( vel);
+    
+    [self takeRotate];
+}
+-(void) moveTypeSevenCalc{//直线
+    velocity = ccp(0,-1);
+}
+
+-(void) moveTypeEightCalc{// 向下 停 向上
+    if(self.position.y < screenRect.size.height/3*2 && !isMoveStop){
+        velocity = ccp(0,0);
+        isMoveStop = YES;
+    }else{
+        if (moveStopInterval<3.0 && isMoveStop) {
+            return;
+        }
+        if (isMoveStop) {
+            velocity = ccp(0,1);
+        }else
+            velocity = ccp(0,-1);
+    }
+}
+-(void) moveTypeNineCalc{//向下 停 向下
+    if(self.position.y < screenRect.size.height/3*2 && !isMoveStop){
+        velocity = ccp(0,0);
+        isMoveStop = YES;
+    }else{
+        if (moveStopInterval<3.0 && isMoveStop) {
+            return;
+        }
+        velocity = ccp(0,-1);
+    }
+}
+-(void) moveTypeTenCalc{//向右 停 向左
+    CGPoint pos;
+    int x;
+    if (startPos.x<160) {
+        x = -1;
+        pos = ccp(screenRect.size.width,self.position.y);
+    }else{
+        x = 1;
+        pos = ccp(0,self.position.y);
+    }
+    CGFloat distance = ccpDistance(self.position, pos);
+    if (distance<self.boundingBox.size.width) {
+        velocity = ccp(x, 0);
+        isMoveStop = YES;
+    }else{
+        if (isMoveStop) {return;}
+        if (startPos.x<160) {
+            velocity = ccp(1, 0);
+        }else
+            velocity = ccp(-1, 0);
+    }
+}
+
+-(void) moveTypeElevenCalc{// 向下 ( 向右  向左 循环)
+    if(self.position.y < screenRect.size.height/3*2 && !isMoveStop){
+        velocity = ccp(0.5,0);
+        isMoveStop = YES;
+    }else{
+        if (isMoveStop) {
+            CGPoint pos1 = ccp(0, screenRect.size.height/3*2);
+            CGPoint pos2 = ccp(screenRect.size.width, screenRect.size.height/3*2);
+            CGFloat distance1 = ccpDistance(pos1, self.position);
+            CGFloat distance2 = ccpDistance(pos2, self.position);
+            if (distance1<50) {
+                velocity = ccp(0.5, 0);
+            }
+            if (distance2<=50) {
+                velocity = ccp(-0.5, 0);
+            }
+        }else
+            velocity = ccp(0,-1);
+    }
+}
+-(void) moveTypeTwelveCalc{// 向下 ( 向右  向左 循环)
+    if (ccpDistance(self.position, lastPos )<=5) {
+        velocity = CGPointZero;
+        velocity = [self GetNextMoveToVeloc];
+    }
+}
+-(CGPoint) GetNextMoveToVeloc{
+    CGSize size = [[CCDirector sharedDirector]winSize];
+    NSInteger pos = arc4random()%5;
+    CGPoint nextPos;
+    switch (pos) {
+        case 0:
+            nextPos = ccp(self.boundingBox.size.width/2, size.height-self.boundingBox.size.height/2);
+            break;
+        case 1:
+            nextPos = ccp(size.width/2 , size.height-self.boundingBox.size.height/2);
+            break;
+        case 2:
+            nextPos = ccp(size.width - self.boundingBox.size.width/2, size.height-self.boundingBox.size.height/2);
+            break;
+        case 3:
+            nextPos = ccp(size.width/5*2, size.height/5*3);
+            break;
+        case 4:
+            nextPos = ccp(size.width/5*4, size.height/5*3);
+            break;
+        default:
+            //            NSLog(@"areNotExit00");
+            break;
+    }
+    //    NSLog(@"%f,%f",nextPos.x,nextPos.y);
+    lastPos = nextPos;
+    CGFloat x1 = (self.position.x - nextPos.x) * (self.position.x - nextPos.x);
+    CGFloat y1 = (self.position.y - nextPos.y) * (self.position.y - nextPos.y);
+    CGFloat veloc = -1*sqrtf(x1 +y1);
+    //    bullet.rotation =(target.x - startPos.x) / (target.y - startPos.y);
+    CGPoint vel = CGPointMake((self.position.x - nextPos.x)/veloc, (self.position.y - nextPos.y)/veloc);
+    return vel;
+}
+
+
+//-(void)moveTypeThirteenCalc{
+//    CGPoint pos;
+//    int x;
+//    if (startPos.x<160) {
+//        x = -1;
+//        pos = ccp(screenRect.size.width,self.position.y);
+//    }else{
+//        x = 1;
+//        pos = ccp(0,self.position.y);
+//    }
+//    CGFloat distance = ccpDistance(self.position, pos);
+//    if (distance<self.boundingBox.size.width) {
+//        velocity = ccp(x, 0);
+//        isMoveStop = YES;
+//    }else{
+//        if (isMoveStop) {return;}
+//        if (startPos.x<160) {
+//            velocity = ccp(1, 0);
+//        }else
+//            velocity = ccp(-1, 0);
+//    }
+//}
+
+
+#pragma mark - shoot
+
+-(void) initEmitterShootArray{
+    
+    if (shootType != ShootType_emitterRand) {
+        return;
+    }
+    
+    emitterShootArray = [[NSMutableArray alloc] init];
+    
+    switch (enemyType) {
+        case 4:{
+            LianXuBulletEmitter * lianxu = [LianXuBulletEmitter node];
+            lianxu.shootCountMax = 4;
+            [self addChild:lianxu];
+            [emitterShootArray addObject:lianxu];
+        }
+            break;
+        case 5:{
+            DuoGeBulletEmitter * duoge = [DuoGeBulletEmitter node];
+            [emitterShootArray addObject:duoge];
+            [self addChild:duoge];
+        }
+            break;
+        case 6:{
+            DuoGeBulletEmitter * duoge = [DuoGeBulletEmitter node];
+            duoge.shootCountMax = 8;
+            [self addChild:duoge];
+            [emitterShootArray addObject:duoge];
+        }
+            break;
+//        case 7:{
+//            
+//        }
+//            break;
+        case 8:{
+            DuoGeBulletEmitter * duoge = [DuoGeBulletEmitter node];
+            [self addChild:duoge];
+            XuanZhuanBulletEmitter * xuanzhuan = [XuanZhuanBulletEmitter node];
+            xuanzhuan.leftOrRight = YES;
+            xuanzhuan.shootCountMax = 12*3;
+            [self addChild:xuanzhuan];
+            
+            TongDaoBulletEmitter * tongdao = [TongDaoBulletEmitter node];
+            tongdao.shootCountMax = 5;
+            [self addChild:tongdao];
+            
+            [emitterShootArray addObject:duoge];
+            [emitterShootArray addObject:xuanzhuan];
+            [emitterShootArray addObject:tongdao];
+        }
+            break;
+        case 9:{
+            FaSheHouKuoSan * fsks = [FaSheHouKuoSan node];
+            fsks.times = 1;
+            QianFangDuoDianBulletEmitter * qianfang = [QianFangDuoDianBulletEmitter node];
+            qianfang.times = 2;
+            
+            QianFangDuoDianBulletEmitter * qianfang1 = [QianFangDuoDianBulletEmitter node];
+            qianfang1.times = 1;
+            [self addChild:fsks];
+            [self addChild:qianfang];
+            [self addChild:qianfang1];
+            [emitterShootArray addObject:fsks];
+            [emitterShootArray addObject:qianfang];
+            [emitterShootArray addObject:qianfang1];
+        }
+            break;
+        case 10:{
+            ShaoSheBulletEmitter * shaoshe = [ShaoSheBulletEmitter node];
+            shaoshe.times = 7;
+            
+            DuoGeBulletEmitter * duoge = [DuoGeBulletEmitter node];
+            
+            QianFangDuoDianBulletEmitter * qianf = [QianFangDuoDianBulletEmitter node];
+            TongDaoBulletEmitter * tongdao1 = [TongDaoBulletEmitter node];
+            tongdao1.shootCountMax = 4;
+            TongDaoBulletEmitter * tongdao2 = [TongDaoBulletEmitter node];
+            tongdao2.shootCountMax = 4;
+            
+            [self addChild:shaoshe];
+            [self addChild:duoge];
+            [self addChild:qianf];
+            [self addChild:tongdao1];
+            [self addChild:tongdao2];
+            [emitterShootArray addObject:shaoshe];
+            [emitterShootArray addObject:duoge];
+            [emitterShootArray addObject:qianf];
+            [emitterShootArray addObject:tongdao2];
+            [emitterShootArray addObject:tongdao1];
+        }
+            break;
+        default:
+            return;
+            break;
+    }
+}
+
+-(void)shoot:(const ShootType)sT{
+    if (isDeath) {
+        return;
+    }
+    switch (sT) {
+        case 0:
+            [self emitterRandShoot];
+            break;
+        case 1:
+            [self shootTypeOne];
+            break;
+        case 2:
+            [self shootTypeTwo];
+            break;
+        case 3:
+            [self shootTypeThree];
+            break;
+        default:
+            break;
+    }
+}
+
+-(void) emitterRandShoot{//从emitter中随机选择emitter 发射
+    NSInteger xx = emitterShootArray.count;
+    if (xx>3) {
+        xx=3;
+    }
+    NSInteger rand = arc4random() % xx;
+    EnemyBulletEmitter * emitter = [emitterShootArray objectAtIndex:rand];
+    [emitter ShootAt:ccp(0, 0) withTarget:[[PlayingScene SharedPlayingScene] getPlayer]];
+    if (enemyType==10 && rand==2 && [emitterShootArray objectAtIndex:3]&& [emitterShootArray objectAtIndex:4]) {
+        canMove = NO;
+        EnemyBulletEmitter * emitter1 = [emitterShootArray objectAtIndex:3];
+        EnemyBulletEmitter * emitter2 =[emitterShootArray objectAtIndex:4];
+        CGPoint pos1  = ccp(self.boundingBox.size.width/2 * -1, 0);
+        CGPoint pos2  = ccp(self.boundingBox.size.width/2, 0);
+        [emitter1 ShootAt:pos1 withTarget:nil];
+        [emitter2 ShootAt:pos2 withTarget:nil];
+    }
+}
+
+-(CGPoint) selfGetLeftShootPos{
+    return ccp(self.position.x - self.boundingBox.size.width/2, self.position.y);
+}
+-(CGPoint) selfGetRightShootPos{
+    return ccp(self.position.x + self.boundingBox.size.width/2, self.position.y);
+}
+
+-(void) shootTypeOne{// 发射一颗子弹想着玩家
+    BulletCache * bulletCache = [[PlayingScene SharedPlayingScene] getBulletCache];
+    [bulletCache ShootOneBullet:self.position];
+}
+-(void) shootTypeTwo{//发射两颗子弹 横着或竖着
+    BulletCache * bulletCache = [[PlayingScene SharedPlayingScene] getBulletCache];
+    CGPoint pos;
+    CGPoint pos2;
+    if (arc4random()%2) {
+        pos  = ccp(self.position.x-4,self.position.y);
+        pos2 = ccp(self.position.x+4,self.position.y);
+    }else{
+        pos  = ccp(self.position.x,self.position.y-4);
+        pos2 = ccp(self.position.x,self.position.y+4);
+    }
+    [bulletCache ShootOneBullet:pos];
+    [bulletCache ShootOneBullet:pos2];
+}
+-(void) shootTypeThree{// 发射两颗导弹 直线 
+    BulletCache * bulletCache = [[PlayingScene SharedPlayingScene] getBulletCache];
+    CGPoint pos  = [self selfGetLeftShootPos];
+    CGPoint pos2 = [self selfGetRightShootPos];
+    [bulletCache ShootThreeBullet:pos];
+    [bulletCache ShootThreeBullet:pos2];
+}
+
+#pragma mark - takedamage death
+
+-(void)takeDamage:(CGFloat)damage{
+    [super takeDamage:damage];
+}
+
+-(CGRect)GetDamageRect{
+    if (!isDeath) {
+        CGFloat width = self.boundingBox.size.width;
+        CGFloat height = self.boundingBox.size.height;
+         return CGRectMake(self.position.x - width/3, self.position.y - height/3, width/3*2, height/3*2);
+    }
+    return CGRectZero;
+}
+
+-(void)Death{
+    [super Death];
+    isDeath = YES;
+    self.visible = NO;
+    [self unscheduleAllSelectors];
+    
+    [self scheduleOnce:@selector(removeFromParentxx) delay:2.0];
+}
+-(void) removeFromParentxx{
+    [self removeFromParentAndCleanup:YES];
+}
+
+- (void)dealloc
+{
+    if (emitterShootArray) {
+        [emitterShootArray removeAllObjects];
+        [emitterShootArray release];
+        emitterShootArray  =  nil;
+    }
+    [super dealloc];
+}
+@end

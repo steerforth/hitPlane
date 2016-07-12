@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader
+END
+CCBReader.h
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBReader.h
+END
+CCBSequenceProperty.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBSequenceProperty.m
+END
+CCBKeyframe.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBKeyframe.h
+END
+CCNode+CCBRelativePositioning.h
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCNode+CCBRelativePositioning.h
+END
+CCBReader.m
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBReader.m
+END
+CCBKeyframe.m
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBKeyframe.m
+END
+CCBSequence.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBSequence.h
+END
+CCBAnimationManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBAnimationManager.h
+END
+CCNode+CCBRelativePositioning.m
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCNode+CCBRelativePositioning.m
+END
+CCBSequenceProperty.h
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBSequenceProperty.h
+END
+CCBsequence.m
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBsequence.m
+END
+CCBAnimationManager.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/cqpw/!svn/ver/311/ios/jiangyu/ZHCRMC/CCBReader/CCBAnimationManager.m
+END

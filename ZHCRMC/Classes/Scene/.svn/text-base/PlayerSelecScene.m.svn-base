@@ -1,0 +1,27 @@
+//
+//  PlayerSelecScene.m
+//  ZHCRMC
+//
+//  Created by jiangyu on 13-1-18.
+//  Copyright 2013年 __MyCompanyName__. All rights reserved.
+//
+
+#import "PlayerSelecScene.h"
+#import "CCBReader.h"
+#import "PlayingScene.h"
+
+@implementation PlayerSelecScene
+
+-(void) SelectRedFly:(id) sender{
+    PlayingScene * scene = [PlayingScene SharedPlayingScene];
+    [scene startGameWithLevel:1 PlayerType:0 playerLifeCount:3 PlayerPoint:0 damageEnemyCount:0 NukeCount:3 AddWeaponLevel:0 WeaponLevel:1 bulletType:0];
+    [[CCDirector sharedDirector] replaceScene:scene];
+
+}
+
+-(void) SelectBlueFly:(id) sender{
+    PlayingScene * scene = [PlayingScene SharedPlayingScene];
+    [scene startGameWithLevel:1 PlayerType:1 playerLifeCount:3 PlayerPoint:0 damageEnemyCount:0 NukeCount:3 AddWeaponLevel:0 WeaponLevel:1 bulletType:0];
+    [[CCDirector sharedDirector] replaceScene:scene];
+}
+@end
